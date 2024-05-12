@@ -1,0 +1,390 @@
+openapi: 3.0.1
+info:
+  title: LIPT Soft test app API
+  version: 1.0.0
+servers:
+  - url: http://localhost/api/v1
+tags:
+  - name: Transaction API
+    description: API для операций с тратами
+  - name: Category Api
+    description: API для операций сс категориями
+paths:
+  /category:
+    post:
+      tags:
+        - Category Api
+      summary: Добавить категорию трат
+      operationId: CreateCategory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryWithMcc'
+        required: true
+      responses:
+        '200':
+          description: Создана новая категория трат
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryWithMcc'
+        '400':
+          description: Такой mcc код уже в другой категории трат
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    get:
+      tags:
+        - Category Api
+      summary: Получить список категорий
+      operationId: GetCategories
+      responses:
+        '200':
+          description: Список имен категорий
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+  /category/{categoryName}:
+    delete:
+      tags:
+        - Category Api
+      summary: Удалить категорию трат
+      operationId: DeleteCategory
+      parameters:
+        - name: categoryName
+          in: path
+          description: Имя категории для удаления
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Категория трат удалена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoveCategoryResponse'
+        '400':
+          description: Категория с таким именем не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    post:
+      tags:
+        - Category Api
+      summary: Добавить mcc в существующую категорию трат
+      operationId: AddMccByCategory
+      parameters:
+        - name: categoryName
+          in: path
+          description: Имя категории для добавления mcc
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: mccs
+              type: array
+              items:
+                format: mcc
+                type: integer
+                minimum: 1000
+                maximum: 9999
+              minItems: 1
+        required: true
+      responses:
+        '200':
+          description: Добавлен новый mcc к категории трат
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryWithMcc'
+        '400':
+          description: Такой mcc код уже в другой категории трат
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    put:
+      tags:
+        - Category Api
+      summary: Добавить в категорию подкатегории
+      operationId: AddSubcategory
+      parameters:
+        - name: categoryName
+          in: path
+          description: Имя категории для добавления подкатегорий
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryGroup'
+        required: true
+      responses:
+        '200':
+          description: Добавлены подкатегории в категорию
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryWithSubCategory'
+        '400':
+          description: Такой mcc код уже в другой категории трат
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /transaction/{categoryName}:
+    post:
+      tags:
+        - Transaction Api
+      summary: Добавить трату
+      operationId: AddTransaction
+      parameters:
+        - name: categoryName
+          in: path
+          description: Имя категории для добавления трат
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - transaction
+              properties:
+                mcc:
+                  type: array
+                  items:
+                    format: mcc
+                    type: integer
+                    minimum: 1000
+                    maximum: 9999
+                transaction:
+                  $ref: '#/components/schemas/Transaction'
+      responses:
+        '200':
+          description: Трата добавлена в категорию
+          content:
+            application/json:
+              schema:
+                type: array
+                description: categories
+                items:
+                  type: string
+        '400':
+          description: Такой категории не существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    delete:
+      tags:
+        - Transaction Api
+      summary: Удалить трату
+      operationId: DeleteTransaction
+      parameters:
+        - name: categoryName
+          in: path
+          description: Имя категории для удаления трат
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        '200':
+          description: Трата удалена
+        '400':
+          description: Такой траты в категории не существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /transaction/category/{categoryName}:
+    get:
+      tags:
+        - Transaction Api
+      summary: Получить траты в выбранной категории по месяцам
+      operationId: GetTransactionByCategory
+      parameters:
+        - name: categoryName
+          in: path
+          description: Имя категории
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список трат выбранной категори по месяцам
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryTransaction'
+  /transaction/{month}:
+    get:
+      tags:
+        - Transaction Api
+      summary: Траты в категориях в выбранный месяц (сумма за месяц)
+      operationId: GetTransactionByMonth
+      parameters:
+        - name: month
+          in: path
+          description: Название месяца
+          required: true
+          schema:
+            $ref: '#/components/schemas/MonthEnum'
+#            type: string
+#            enum: [ "january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december" ]
+      responses:
+        '200':
+          description: Список трат и процентного соотношения в категориях в выбранных месяц
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionWithPercent'
+components:
+  schemas:
+    CategoryGroup:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            type: string
+          oneOf:
+            - minItems: 1
+    CategoryWithSubCategory:
+      required:
+        - categoryName
+        - mccs
+      type: object
+      properties:
+        categoryName:
+          type: string
+        mccs:
+          type: array
+          items:
+            format: mcc
+            type: integer
+            minimum: 1000
+            maximum: 9999
+          minItems: 1
+        categories:
+          type: array
+          items:
+            type: string
+    CategoryWithMcc:
+      required:
+        - categoryName
+        - mccs
+      type: object
+      properties:
+        categoryName:
+          type: string
+        mccs:
+          type: array
+          items:
+            format: mcc
+            type: integer
+            minimum: 1000
+            maximum: 9999
+          oneOf:
+            - minItems: 1
+    RemoveCategoryResponse:
+      required:
+        - categoryName
+        - categories
+      type: object
+      properties:
+        categoryName:
+          type: string
+        subcategories:
+          type: array
+          items:
+            type: string
+    CategoryTransaction:
+      required:
+        - value
+        - month
+      type: object
+      properties:
+        value:
+          type: number
+          format: double
+        month:
+          $ref: '#/components/schemas/MonthEnum'
+    Transaction:
+      required:
+        - value
+        - month
+      type: object
+      properties:
+        value:
+          type: number
+          format: double
+        month:
+          $ref: '#/components/schemas/MonthEnum'
+    TransactionWithPercent:
+      required:
+        - categoryName
+        - value
+        - percent
+      properties:
+        categoryName:
+          type: string
+        value:
+          type: number
+          format: double
+        percent:
+          type: integer
+          format: int32
+    ApiErrorResponse:
+      type: object
+      properties:
+        description:
+          type: string
+        code:
+          type: string
+        exceptionName:
+          type: string
+        exceptionMessage:
+          type: string
+        stacktrace:
+          type: array
+          items:
+            type: string
+    MonthEnum:
+      enum: [ "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"]
+
+
+
+
+
+
+
+
+
+
+
+
+

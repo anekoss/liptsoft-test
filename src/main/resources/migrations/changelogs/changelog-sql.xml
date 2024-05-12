@@ -1,0 +1,12 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+ http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.21.xsd">
+    <changeSet id="init_tables" author="anekoss">
+        <sqlFile path="../sql/create_tables_1.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+    <changeSet id="insert_test_values" author="anekoss">
+        <sqlFile path="../sql/insert_test_values_2.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+</databaseChangeLog>

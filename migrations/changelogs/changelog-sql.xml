@@ -6,7 +6,4 @@
     <changeSet id="init_tables" author="anekoss">
         <sqlFile path="../sql/create_tables_1.sql" relativeToChangelogFile="true"/>
     </changeSet>
-    <changeSet id="insert_test_values" author="anekoss">
-        <sqlFile path="../sql/insert_test_values_2.sql" relativeToChangelogFile="true"/>
-    </changeSet>
 </databaseChangeLog>

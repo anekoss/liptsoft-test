@@ -1,1 +1,16 @@
-spring.application.name=app
+app:
+  server:
+    port: 8080
+  springdoc:
+    swagger-ui:
+      path: /swagger-ui/index.html
+spring:
+   datasource:
+     url: jdbc:postgresql://localhost:5432/app
+     username: postgres
+     password: postgres
+     driverClassName: org.postgresql.Driver
+   liquibase:
+     enabled: false
+logging:
+  config: classpath:log4j2-plain.xml
